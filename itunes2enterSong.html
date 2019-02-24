@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        img {
+            height: 100px;
+            float: left;
+        }
+
+    </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <div id="app" class="container">
+
+        <input v-model="keyword" v-on:change="searchItems" placeholder="キーワードを入力">
+ 
+        <label><input type="radio" name="albumSong" value="album" v-model="albumSongRadio" >アルバム</label>
+        <label><input type="radio" name="albumSong" value="song" v-model="albumSongRadio">ソング</label>
+        <button v-on:click="searchItems">検索</button>
+        <table class="table table-striped" v-if="results">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ジャケット</th>
+                    <th v-if="albumSong == 'song'">曲名</th>
+                    <th>アルバム名</th>
+                    <th>アーティスト名</th>
+                </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(item, index) in results">
+                <th>{{ index + 1 }}</th>
+                <td>
+
+                    <a v-bind:href="item.collectionViewUrl"><img v-bind:src="item.artworkUrl100"></a>
+                </td>
+                <td v-if="albumSong == 'song'">
+                    {{ item.trackName }}
+                </td>                
+                <td>
+                    {{ item.collectionName }}
+                </td>
+                <td>
+                    {{ item.artistName }}
+                </td>
+
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+
+        // 検索用関数
+        var search = function() {
+            //console.log("mounted")
+            this.albumSong = this.albumSongRadio;
+            var data = {
+                params: {
+                    'term': this.keyword,
+                    'country': 'jp',
+                    'media': 'music',
+                    'lang': 'ja_jp',
+                    'entity': this.albumSong,
+                    'limit': '30'
+                }
+            }
+
+            // アロー関数に変換例も示す？
+            var self = this;
+            axios.get('https://itunes.apple.com/search', data)
+                .then(function(res) {
+                    // console.log(this) グローバル
+  
+                    self.results = res.data.results
+                    console.log(self.results.length)
+                    for (i = 0; i < self.results.length; i++) {
+                        //console.log("r:" + self.results[i])
+
+                        console.log(self.results[i].collectionName, self.results[i].artistName, self.results[i].collectionViewUrl, self.results[i].artworkUrl100)
+                    }
+                    // thisではだめ？
+                    //vm.items = res.data.items;
+
+
+                })
+                .catch(function(err) {
+                    console.log(err);
+                });
+        }
+
+        var vm = new Vue({
+            el: '#app',
+            data: {
+                albumSongRadio: 'album',
+                albumSong: '',
+                results: null,
+                keyword: 'Giulietta Machine'
+
+            },
+            methods: {
+                searchItems: search
+            },
+            //mounted: search
+
+        })
+
+    </script>
+</body>
+
+</html>
